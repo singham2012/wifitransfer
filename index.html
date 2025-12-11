@@ -1,34 +1,33 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Wifi Image Transfer</title>
+</head>
+
 <body>
-<h2>Send Image to Windows App</h2>
-<input id="file" type="file" accept="image/*">
+    <h2>Select image to send</h2>
+    <input type="file" id="fileInput" accept="image/*">
+    <button onclick="sendImage()">Send</button>
 
-<script>
-let ws;
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const ip = params.get("ip");
+        const port = params.get("port");
 
-(function init() {
-    const url = window.location.href.replace("http", "ws");
-    ws = new WebSocket(url);
+        let ws = new WebSocket(`ws://${ip}:${port}/upload`);
 
-    ws.onopen = () => console.log("Connected to Windows");
-    ws.onerror = (e) => alert("Connection error: " + e);
-})();
+        ws.onopen = () => alert("Connected to PC");
+        ws.onerror = () => alert("Connection failed");
 
-document.getElementById("file").onchange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+        async function sendImage() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
 
-    const array = await file.arrayBuffer();
-    const bytes = new Uint8Array(array);
+            let arrayBuffer = await file.arrayBuffer();
+            ws.send(arrayBuffer);
 
-    let header = new Uint8Array(4);
-    new DataView(header.buffer).setUint32(0, bytes.length, true);
-
-    ws.send(header);
-    ws.send(bytes);
-};
-</script>
-
+            alert("Sent successfully");
+        }
+    </script>
 </body>
 </html>
