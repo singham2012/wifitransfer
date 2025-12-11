@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Send Image to Windows App</h2>
+<input id="file" type="file" accept="image/*">
+
+<script>
+let ws;
+
+(function init() {
+    const url = window.location.href.replace("http", "ws");
+    ws = new WebSocket(url);
+
+    ws.onopen = () => console.log("Connected to Windows");
+    ws.onerror = (e) => alert("Connection error: " + e);
+})();
+
+document.getElementById("file").onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const array = await file.arrayBuffer();
+    const bytes = new Uint8Array(array);
+
+    let header = new Uint8Array(4);
+    new DataView(header.buffer).setUint32(0, bytes.length, true);
+
+    ws.send(header);
+    ws.send(bytes);
+};
+</script>
+
+</body>
+</html>
